@@ -27,6 +27,7 @@
 		2500A11A25A5528A00681598 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A11925A5528A00681598 /* libz.tbd */; };
 		2500A11F25A5529600681598 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A11E25A5529600681598 /* libbz2.tbd */; };
 		2500A12425A5529F00681598 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A12325A5529F00681598 /* libiconv.tbd */; };
+		2500A14025A5620000681598 /* VideoDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A13F25A5620000681598 /* VideoDecoder.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,8 @@
 		2500A11925A5528A00681598 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		2500A11E25A5529600681598 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = usr/lib/libbz2.tbd; sourceTree = SDKROOT; };
 		2500A12325A5529F00681598 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		2500A13E25A5620000681598 /* VideoDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoDecoder.h; sourceTree = "<group>"; };
+		2500A13F25A5620000681598 /* VideoDecoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoDecoder.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,6 +141,7 @@
 		2500A0A625A2F3D500681598 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				2500A13D25A5615600681598 /* decoder */,
 				2500A0A725A2F3D500681598 /* AppDelegate.h */,
 				2500A0A825A2F3D500681598 /* AppDelegate.m */,
 				2500A0AA25A2F3D500681598 /* SceneDelegate.h */,
@@ -187,6 +191,15 @@
 				2500A10C25A5526900681598 /* libswscale.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2500A13D25A5615600681598 /* decoder */ = {
+			isa = PBXGroup;
+			children = (
+				2500A13E25A5620000681598 /* VideoDecoder.h */,
+				2500A13F25A5620000681598 /* VideoDecoder.m */,
+			);
+			path = decoder;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,6 +335,7 @@
 				2500A0A925A2F3D500681598 /* AppDelegate.m in Sources */,
 				2500A0BA25A2F3D600681598 /* main.m in Sources */,
 				2500A0AC25A2F3D500681598 /* SceneDelegate.m in Sources */,
+				2500A14025A5620000681598 /* VideoDecoder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
