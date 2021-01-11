@@ -28,6 +28,7 @@
 		2500A11F25A5529600681598 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A11E25A5529600681598 /* libbz2.tbd */; };
 		2500A12425A5529F00681598 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A12325A5529F00681598 /* libiconv.tbd */; };
 		2500A14025A5620000681598 /* VideoDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A13F25A5620000681598 /* VideoDecoder.m */; };
+		2500A16125A83B0300681598 /* 学习知识 in Resources */ = {isa = PBXBuildFile; fileRef = 2500A16025A83B0300681598 /* 学习知识 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +80,7 @@
 		2500A12325A5529F00681598 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		2500A13E25A5620000681598 /* VideoDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoDecoder.h; sourceTree = "<group>"; };
 		2500A13F25A5620000681598 /* VideoDecoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoDecoder.m; sourceTree = "<group>"; };
+		2500A16025A83B0300681598 /* 学习知识 */ = {isa = PBXFileReference; lastKnownFileType = text; path = "学习知识"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,6 +155,7 @@
 				2500A0B525A2F3D600681598 /* LaunchScreen.storyboard */,
 				2500A0B825A2F3D600681598 /* Info.plist */,
 				2500A0B925A2F3D600681598 /* main.m */,
+				2500A16025A83B0300681598 /* 学习知识 */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -305,6 +308,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2500A0B725A2F3D600681598 /* LaunchScreen.storyboard in Resources */,
+				2500A16125A83B0300681598 /* 学习知识 in Resources */,
 				2500A0B425A2F3D600681598 /* Assets.xcassets in Resources */,
 				2500A0B225A2F3D500681598 /* Main.storyboard in Resources */,
 			);

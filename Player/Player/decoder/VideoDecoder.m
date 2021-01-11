@@ -117,13 +117,14 @@ static void avStreamFPSTimeBase(AVStream *st,
                                 CGFloat *pTimeBase) {
     CGFloat timebase;
     if (st->time_base.den && st->time_base.num) {
-        timebase = av_q2d(st->time_base);
+        timebase = av_q2d(st->time_base); // 根据AVStream中的time_base 计算出秒
     } else if (codecContext->time_base.den && codecContext->time_base.num) {
-        timebase = av_q2d(codecContext->time_base);
+        timebase = av_q2d(codecContext->time_base);  // 根据AVCodecContext中的time_base 计算出秒
     } else {
-        timebase = defaultTimeBase;
+        timebase = defaultTimeBase;   //默认
     }
     
+    //
     if (codecContext->ticks_per_frame != 1) {
         NSLog(@"WARNING: st.codec.ticks_per_frame=%d", codecContext->ticks_per_frame);
     }
@@ -194,7 +195,7 @@ static NSData *copyFrameData(UInt8 *src,
             int64_t duration = _formatContext->duration + 5000;
             _buriedPoint.second = (int)duration / AV_TIME_BASE;
         }
-        
+        //打开每个流的解码器
         BOOL openVideoStatus = [self openVideoStream];
         BOOL openAudioStatus = [self openAudioStream];
         if (!openVideoStatus || !openAudioStatus) {
@@ -250,7 +251,7 @@ static NSData *copyFrameData(UInt8 *src,
         
         int pktSize = packet.size;
         int pktStreamIndex = packet.stream_index;
-        if (pktStreamIndex == _videoStreamIndex) {
+        if (pktStreamIndex == _videoStreamIndex) { //视频帧
             double startDecodeTimeMills = CFAbsoluteTimeGetCurrent() * 1000;
             VideoFrame *frame = [self decodeVideo:packet
                                        packetSize:pktSize
@@ -266,7 +267,7 @@ static NSData *copyFrameData(UInt8 *src,
                     finished = YES;
                 }
             }
-        } else if (pktStreamIndex == _audioStreamIndex) {
+        } else if (pktStreamIndex == _audioStreamIndex) { // 音频帧
             int len = avcodec_send_packet(_audioCodecCtx, &packet);
             if (len < 0) {
                 NSLog(@"decode audio error, skip packet");
@@ -456,8 +457,14 @@ static NSData *copyFrameData(UInt8 *src,
                                &options);
 }
 
+// 设置avformat_find_stream_info的参数
 - (void)initAnalyzeDurationAndProbesize:(AVFormatContext *)formatCtx
                               parameter:(NSDictionary *)parameter {
+    /**
+     * avformat_find_stream_info 该方法的作用：就是把所有的stream的MetaData信息填充好。
+     * avformat_find_stream_info函数是可以设置参数,有几个参数可以控制读取数据的长度，一个是probe size 一个是max_analyze_duration 还有fps_probe_size 这三个参数共同控制解码数据的长度
+     * probesize 和 max_analyze_duration 常设置成 50 * 1024 和 75000
+     */
     float probeSize = [parameter[PROBE_SIZE] floatValue];
     
     formatCtx->probesize = probeSize ? probeSize : 50 * 1024;
@@ -483,6 +490,7 @@ static NSData *copyFrameData(UInt8 *src,
 - (BOOL)openVideoStream{
     _videoStreamIndex = -1;
     _videoStreams = collectStreams(_formatContext, AVMEDIA_TYPE_VIDEO);
+    // 找到1个AVStream就退出循环
     for (NSNumber *n in _videoStreams) {
         const NSUInteger iStream = n.integerValue;
         AVCodecContext *codecCtx = avcodec_alloc_context3(NULL);
@@ -512,6 +520,7 @@ static NSData *copyFrameData(UInt8 *src,
         _videoCodecCtx = codecCtx;
         
         AVStream *st = _formatContext->streams[_videoStreamIndex];
+        //计算 AVStream的timeBase(秒)和fps
         avStreamFPSTimeBase(st,
                             codecCtx,
                             0.04,
@@ -544,7 +553,7 @@ static NSData *copyFrameData(UInt8 *src,
         }
         
         SwrContext *swrContext = NULL;
-        if (![self audioCodecIsSupported:codecCtx]) {
+        if (![self audioCodecIsSupported:codecCtx]) {  // 是否重采样
             NSLog(@"because of audio Codec is Not Supported so we will init swresampler...");
             swrContext = swr_alloc_set_opts(NULL,
                                             av_get_default_channel_layout(codecCtx->channels),
@@ -670,6 +679,7 @@ static NSData *copyFrameData(UInt8 *src,
     void *audioData;
     if (_swrContext) {
         const NSUInteger ratio = 2;
+        //av_samples_get_buffer_size() 计算编解码每一帧输入给编解码器需要多少个字节
         const int bufSize = av_samples_get_buffer_size(NULL,
                                                        (int)numChannels,
                                                        (int)_audioFrame->nb_samples * ratio,
@@ -721,7 +731,7 @@ static NSData *copyFrameData(UInt8 *src,
     }
     
     VideoFrame *frame = [[VideoFrame alloc] init];
-    if (_videoCodecCtx->pix_fmt == AV_PIX_FMT_YUV420P || _videoCodecCtx->pix_fmt == AV_PIX_FMT_YUVJ420P) {
+    if (_videoCodecCtx->pix_fmt == AV_PIX_FMT_YUV420P || _videoCodecCtx->pix_fmt == AV_PIX_FMT_YUVJ420P) { //YUV420P
         frame.luma = copyFrameData(_videoFrame->data[0],
                                    _videoFrame->linesize[0],
                                    _videoCodecCtx->width,
@@ -736,7 +746,7 @@ static NSData *copyFrameData(UInt8 *src,
                                       _videoFrame->linesize[2],
                                       _videoFrame->width/2,
                                       _videoFrame->height/2);
-    } else {
+    } else { // 转换成yuv420p
         if (!_swsContext && ![self setupScaler]) {
             NSLog(@"Faile setup video scaler");
             return nil;
@@ -769,11 +779,12 @@ static NSData *copyFrameData(UInt8 *src,
     frame.linesize = _videoFrame->linesize[0];
     frame.type = VideoFrameType;
     
-    frame.position = _videoFrame->best_effort_timestamp * _videoTimeBase;
-    const int64_t frameDuration = _videoFrame->pkt_duration;
+    //时间
+    frame.position = _videoFrame->best_effort_timestamp * _videoTimeBase;   // 视频通过best_effort_timestamp 而不是pts 获取当前一个画面的播放时间
+    const int64_t frameDuration = _videoFrame->pkt_duration;  //pkt_duration 持续时间   以time_base为单位
     if (frameDuration) {
         frame.duration = frameDuration * _videoTimeBase;
-        frame.duration += _videoFrame->repeat_pict * _videoTimeBase * 0.5;
+        frame.duration += _videoFrame->repeat_pict * _videoTimeBase * 0.5;  // repeat_pict 延迟
     } else {
         frame.duration = 1.0 / _fps;
     }
@@ -784,6 +795,14 @@ static NSData *copyFrameData(UInt8 *src,
     [self closeScaler];
     int w = 812;
     int h = 375;
+    /**
+     * libswscale
+     * 是一个主要用于处理图片像素数据的类库。可以完成图片像素格式的转换，图片的拉伸，图像的滤波
+     * 主要的函数:
+     * sws_getContext() / sws_getCachedContext()   初始化一个SwsContext  区别sws_getContext 可以用于多路码流转换，为每个不同的码流都指定一个不同的转换上下文，而 sws_getCachedContext 只能用于一路码流转换
+     * sws_scale()   处理图像数据
+     * sws_freeContext()   释放
+     */
     _swsContext = sws_getCachedContext(_swsContext,
                                        _videoCodecCtx->width,
                                        _videoCodecCtx->height,
