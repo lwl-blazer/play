@@ -29,6 +29,9 @@
 		2500A12425A5529F00681598 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A12325A5529F00681598 /* libiconv.tbd */; };
 		2500A14025A5620000681598 /* VideoDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A13F25A5620000681598 /* VideoDecoder.m */; };
 		2500A16125A83B0300681598 /* 学习知识 in Resources */ = {isa = PBXBuildFile; fileRef = 2500A16025A83B0300681598 /* 学习知识 */; };
+		2500A16825AD377A00681598 /* AudioOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A16725AD377A00681598 /* AudioOutput.m */; };
+		2500A17325AD37C800681598 /* AVAudioSession+RouteUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */; };
+		2500A17425AD37C800681598 /* BLAudioSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A17025AD37C800681598 /* BLAudioSession.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +84,12 @@
 		2500A13E25A5620000681598 /* VideoDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoDecoder.h; sourceTree = "<group>"; };
 		2500A13F25A5620000681598 /* VideoDecoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoDecoder.m; sourceTree = "<group>"; };
 		2500A16025A83B0300681598 /* 学习知识 */ = {isa = PBXFileReference; lastKnownFileType = text; path = "学习知识"; sourceTree = "<group>"; };
+		2500A16625AD377A00681598 /* AudioOutput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioOutput.h; sourceTree = "<group>"; };
+		2500A16725AD377A00681598 /* AudioOutput.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioOutput.m; sourceTree = "<group>"; };
+		2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "AVAudioSession+RouteUtils.m"; sourceTree = "<group>"; };
+		2500A17025AD37C800681598 /* BLAudioSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLAudioSession.m; sourceTree = "<group>"; };
+		2500A17125AD37C800681598 /* AVAudioSession+RouteUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AVAudioSession+RouteUtils.h"; sourceTree = "<group>"; };
+		2500A17225AD37C800681598 /* BLAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLAudioSession.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +152,7 @@
 		2500A0A625A2F3D500681598 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				2500A16525AD375D00681598 /* audioOutput */,
 				2500A13D25A5615600681598 /* decoder */,
 				2500A0A725A2F3D500681598 /* AppDelegate.h */,
 				2500A0A825A2F3D500681598 /* AppDelegate.m */,
@@ -203,6 +213,19 @@
 				2500A13F25A5620000681598 /* VideoDecoder.m */,
 			);
 			path = decoder;
+			sourceTree = "<group>";
+		};
+		2500A16525AD375D00681598 /* audioOutput */ = {
+			isa = PBXGroup;
+			children = (
+				2500A17125AD37C800681598 /* AVAudioSession+RouteUtils.h */,
+				2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */,
+				2500A17225AD37C800681598 /* BLAudioSession.h */,
+				2500A17025AD37C800681598 /* BLAudioSession.m */,
+				2500A16625AD377A00681598 /* AudioOutput.h */,
+				2500A16725AD377A00681598 /* AudioOutput.m */,
+			);
+			path = audioOutput;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -336,10 +359,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				2500A0AF25A2F3D500681598 /* ViewController.m in Sources */,
+				2500A16825AD377A00681598 /* AudioOutput.m in Sources */,
+				2500A17325AD37C800681598 /* AVAudioSession+RouteUtils.m in Sources */,
 				2500A0A925A2F3D500681598 /* AppDelegate.m in Sources */,
 				2500A0BA25A2F3D600681598 /* main.m in Sources */,
 				2500A0AC25A2F3D500681598 /* SceneDelegate.m in Sources */,
 				2500A14025A5620000681598 /* VideoDecoder.m in Sources */,
+				2500A17425AD37C800681598 /* BLAudioSession.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

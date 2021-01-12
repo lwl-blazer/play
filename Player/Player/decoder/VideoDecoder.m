@@ -272,6 +272,7 @@ static NSData *copyFrameData(UInt8 *src,
             if (len < 0) {
                 NSLog(@"decode audio error, skip packet");
             } else {
+                // 对于音频帧,一个AVPacket有可能包含多个音频帧
                 while (avcodec_receive_frame(_audioCodecCtx,
                                              _audioFrame) == 0) {
                     AudioFrame *frame = [self handleAudioFrame];
@@ -531,6 +532,7 @@ static NSData *copyFrameData(UInt8 *src,
     return YES;
 }
 
+//对于音频格式的转换 FFmpeg提供了一个libswresample库
 - (BOOL)openAudioStream{
     _audioStreamIndex = -1;
     _audioStreams = collectStreams(_formatContext, AVMEDIA_TYPE_AUDIO);
@@ -691,6 +693,7 @@ static NSData *copyFrameData(UInt8 *src,
         }
         
         Byte *outbuf[2] = {_swrBuffer, 0};
+        // 重采样用swr_convert进行格式转换
         numFrames = swr_convert(_swrContext,
                                 outbuf,
                                 (int)(_audioFrame->nb_samples * ratio),
@@ -725,6 +728,7 @@ static NSData *copyFrameData(UInt8 *src,
     return frame;
 }
 
+//对于视频帧的格式转换，FFmpeg提供了一个libswscale的库 
 - (VideoFrame *)handleVideoFrame{
     if (!_videoFrame->data[0]) {
         return nil;
