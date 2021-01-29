@@ -135,11 +135,39 @@ static void CheckStatus(OSStatus status,
 }
 
 - (void)getUnitsFromNodes{
+    OSStatus status = noErr;
+    status = AUGraphNodeInfo(_auGraph,
+                             _ioNode,
+                             NULL,
+                             &_ioUnit);
+    CheckStatus(status, @"node info ionode faile", YES);
     
+    status = AUGraphNodeInfo(_auGraph,
+                             _convertNode,
+                             NULL,
+                             &_convertUnit);
+    CheckStatus(status, @"node info convert node faile", YES);
 }
 
 - (void)setAudioUnitProperties{
+    OSStatus status = noErr;
+    AudioStreamBasicDescription streamFormat = self
+}
+
+- (AudioStreamBasicDescription)nonInterleavedPCMFormatWithChannels:(UInt32)channels{
+    UInt32 bytesPerSample = sizeof(Float32);
     
+    AudioStreamBasicDescription asbd;
+    bzero(&asbd, sizeof(asbd));
+    asbd.mFormatID = kAudioFormatLinearPCM;
+    asbd.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved;
+    asbd.mBytesPerPacket = bytesPerSample;
+    asbd.mFramesPerPacket = 1;
+    asbd.mBytesPerFrame = bytesPerSample;
+    asbd.mChannelsPerFrame = channels;
+    asbd.mBitsPerChannel = 8 * bytesPerSample;
+    asbd.mSampleRate = _sampleRate;
+    return asbd;
 }
 
 - (void)makeNodeConnections{
