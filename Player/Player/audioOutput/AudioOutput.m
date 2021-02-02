@@ -151,7 +151,42 @@ static void CheckStatus(OSStatus status,
 
 - (void)setAudioUnitProperties{
     OSStatus status = noErr;
-    AudioStreamBasicDescription streamFormat = self
+    AudioStreamBasicDescription streamFormat = [self nonInterleavedPCMFormatWithChannels:_channels];
+    status = AudioUnitSetProperty(_ioUnit,
+                                  kAudioUnitProperty_StreamFormat,
+                                  kAudioUnitScope_Output,
+                                  inputElement,
+                                  &streamFormat,
+                                  sizeof(streamFormat));
+    CheckStatus(status, @"set property streamFormat faile", YES);
+    
+    AudioStreamBasicDescription _clientFormat16int;
+    bzero(&_clientFormat16int, sizeof(_clientFormat16int));
+    UInt32 bytesPerSample = sizeof(SInt16);
+    _clientFormat16int.mFormatID = kAudioFormatLinearPCM;
+    _clientFormat16int.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
+    _clientFormat16int.mBytesPerPacket = bytesPerSample * _channels;
+    _clientFormat16int.mFramesPerPacket = 1;
+    _clientFormat16int.mBytesPerFrame = bytesPerSample * _channels;
+    _clientFormat16int.mChannelsPerFrame = _channels;
+    _clientFormat16int.mBitsPerChannel = 8 * bytesPerSample;
+    _clientFormat16int.mSampleRate = _sampleRate;
+    
+    status = AudioUnitSetProperty(_convertUnit,
+                                  kAudioUnitProperty_StreamFormat,
+                                  kAudioUnitScope_Output,
+                                  0,
+                                  &streamFormat,
+                                  sizeof(streamFormat));
+    CheckStatus(status, @"set property streamformat convert output faile", YES);
+    
+    status = AudioUnitSetProperty(_convertUnit,
+                                  kAudioUnitProperty_StreamFormat,
+                                  kAudioUnitScope_Input,
+                                  0,
+                                  &_clientFormat16int,
+                                  sizeof(_clientFormat16int));
+    CheckStatus(status, @"set property streamformat convert input faile", YES);
 }
 
 - (AudioStreamBasicDescription)nonInterleavedPCMFormatWithChannels:(UInt32)channels{
