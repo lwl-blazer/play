@@ -29,9 +29,17 @@
 		2500A12425A5529F00681598 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A12325A5529F00681598 /* libiconv.tbd */; };
 		2500A14025A5620000681598 /* VideoDecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A13F25A5620000681598 /* VideoDecoder.m */; };
 		2500A16125A83B0300681598 /* 学习知识 in Resources */ = {isa = PBXBuildFile; fileRef = 2500A16025A83B0300681598 /* 学习知识 */; };
-		2500A16825AD377A00681598 /* AudioOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A16725AD377A00681598 /* AudioOutput.m */; };
 		2500A17325AD37C800681598 /* AVAudioSession+RouteUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */; };
 		2500A17425AD37C800681598 /* BLAudioSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A17025AD37C800681598 /* BLAudioSession.m */; };
+		2500A1D525CD41E600681598 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1D425CD41E600681598 /* AVFoundation.framework */; };
+		2500A1D725CD41ED00681598 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1D625CD41ED00681598 /* AudioToolbox.framework */; };
+		2500A1D925CD41F900681598 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1D825CD41F900681598 /* VideoToolbox.framework */; };
+		2500A1DE25CD427200681598 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1DD25CD427200681598 /* CoreMedia.framework */; };
+		2500A1EA25CD444A00681598 /* AudioOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A1E825CD444A00681598 /* AudioOutput.m */; };
+		2500A1EF25CD461C00681598 /* libx264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1EE25CD461C00681598 /* libx264.a */; };
+		2500A1F425CD465E00681598 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1F325CD465E00681598 /* libfdk-aac.a */; };
+		2500A1FB25CD487100681598 /* PlayerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A1FA25CD487100681598 /* PlayerController.m */; };
+		2500A20425CD4A7600681598 /* AVSynchronizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A20325CD4A7600681598 /* AVSynchronizer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,12 +92,22 @@
 		2500A13E25A5620000681598 /* VideoDecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoDecoder.h; sourceTree = "<group>"; };
 		2500A13F25A5620000681598 /* VideoDecoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoDecoder.m; sourceTree = "<group>"; };
 		2500A16025A83B0300681598 /* 学习知识 */ = {isa = PBXFileReference; lastKnownFileType = text; path = "学习知识"; sourceTree = "<group>"; };
-		2500A16625AD377A00681598 /* AudioOutput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioOutput.h; sourceTree = "<group>"; };
-		2500A16725AD377A00681598 /* AudioOutput.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioOutput.m; sourceTree = "<group>"; };
 		2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "AVAudioSession+RouteUtils.m"; sourceTree = "<group>"; };
 		2500A17025AD37C800681598 /* BLAudioSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLAudioSession.m; sourceTree = "<group>"; };
 		2500A17125AD37C800681598 /* AVAudioSession+RouteUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AVAudioSession+RouteUtils.h"; sourceTree = "<group>"; };
 		2500A17225AD37C800681598 /* BLAudioSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLAudioSession.h; sourceTree = "<group>"; };
+		2500A1D425CD41E600681598 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		2500A1D625CD41ED00681598 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		2500A1D825CD41F900681598 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
+		2500A1DD25CD427200681598 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		2500A1E825CD444A00681598 /* AudioOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioOutput.m; sourceTree = "<group>"; };
+		2500A1E925CD444A00681598 /* AudioOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioOutput.h; sourceTree = "<group>"; };
+		2500A1EE25CD461C00681598 /* libx264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libx264.a; path = "../../../cross-compile/FFmpeg-iOS/lib/libx264.a"; sourceTree = "<group>"; };
+		2500A1F325CD465E00681598 /* libfdk-aac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libfdk-aac.a"; path = "../../../cross-compile/FFmpeg-iOS/lib/libfdk-aac.a"; sourceTree = "<group>"; };
+		2500A1F925CD487100681598 /* PlayerController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayerController.h; sourceTree = "<group>"; };
+		2500A1FA25CD487100681598 /* PlayerController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PlayerController.m; sourceTree = "<group>"; };
+		2500A20225CD4A7600681598 /* AVSynchronizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVSynchronizer.h; sourceTree = "<group>"; };
+		2500A20325CD4A7600681598 /* AVSynchronizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVSynchronizer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +115,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2500A1F425CD465E00681598 /* libfdk-aac.a in Frameworks */,
+				2500A1EF25CD461C00681598 /* libx264.a in Frameworks */,
+				2500A1DE25CD427200681598 /* CoreMedia.framework in Frameworks */,
+				2500A1D925CD41F900681598 /* VideoToolbox.framework in Frameworks */,
+				2500A1D725CD41ED00681598 /* AudioToolbox.framework in Frameworks */,
+				2500A1D525CD41E600681598 /* AVFoundation.framework in Frameworks */,
 				2500A12425A5529F00681598 /* libiconv.tbd in Frameworks */,
 				2500A11F25A5529600681598 /* libbz2.tbd in Frameworks */,
 				2500A11A25A5528A00681598 /* libz.tbd in Frameworks */,
@@ -152,6 +176,7 @@
 		2500A0A625A2F3D500681598 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				2500A1F825CD485700681598 /* controller */,
 				2500A16525AD375D00681598 /* audioOutput */,
 				2500A13D25A5615600681598 /* decoder */,
 				2500A0A725A2F3D500681598 /* AppDelegate.h */,
@@ -191,6 +216,12 @@
 		2500A10825A5526800681598 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2500A1F325CD465E00681598 /* libfdk-aac.a */,
+				2500A1EE25CD461C00681598 /* libx264.a */,
+				2500A1DD25CD427200681598 /* CoreMedia.framework */,
+				2500A1D825CD41F900681598 /* VideoToolbox.framework */,
+				2500A1D625CD41ED00681598 /* AudioToolbox.framework */,
+				2500A1D425CD41E600681598 /* AVFoundation.framework */,
 				2500A12325A5529F00681598 /* libiconv.tbd */,
 				2500A11E25A5529600681598 /* libbz2.tbd */,
 				2500A11925A5528A00681598 /* libz.tbd */,
@@ -211,6 +242,8 @@
 			children = (
 				2500A13E25A5620000681598 /* VideoDecoder.h */,
 				2500A13F25A5620000681598 /* VideoDecoder.m */,
+				2500A20225CD4A7600681598 /* AVSynchronizer.h */,
+				2500A20325CD4A7600681598 /* AVSynchronizer.m */,
 			);
 			path = decoder;
 			sourceTree = "<group>";
@@ -218,14 +251,23 @@
 		2500A16525AD375D00681598 /* audioOutput */ = {
 			isa = PBXGroup;
 			children = (
+				2500A1E925CD444A00681598 /* AudioOutput.h */,
+				2500A1E825CD444A00681598 /* AudioOutput.m */,
 				2500A17125AD37C800681598 /* AVAudioSession+RouteUtils.h */,
 				2500A16F25AD37C800681598 /* AVAudioSession+RouteUtils.m */,
 				2500A17225AD37C800681598 /* BLAudioSession.h */,
 				2500A17025AD37C800681598 /* BLAudioSession.m */,
-				2500A16625AD377A00681598 /* AudioOutput.h */,
-				2500A16725AD377A00681598 /* AudioOutput.m */,
 			);
 			path = audioOutput;
+			sourceTree = "<group>";
+		};
+		2500A1F825CD485700681598 /* controller */ = {
+			isa = PBXGroup;
+			children = (
+				2500A1F925CD487100681598 /* PlayerController.h */,
+				2500A1FA25CD487100681598 /* PlayerController.m */,
+			);
+			path = controller;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -359,10 +401,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				2500A0AF25A2F3D500681598 /* ViewController.m in Sources */,
-				2500A16825AD377A00681598 /* AudioOutput.m in Sources */,
+				2500A1FB25CD487100681598 /* PlayerController.m in Sources */,
 				2500A17325AD37C800681598 /* AVAudioSession+RouteUtils.m in Sources */,
 				2500A0A925A2F3D500681598 /* AppDelegate.m in Sources */,
+				2500A1EA25CD444A00681598 /* AudioOutput.m in Sources */,
 				2500A0BA25A2F3D600681598 /* main.m in Sources */,
+				2500A20425CD4A7600681598 /* AVSynchronizer.m in Sources */,
 				2500A0AC25A2F3D500681598 /* SceneDelegate.m in Sources */,
 				2500A14025A5620000681598 /* VideoDecoder.m in Sources */,
 				2500A17425AD37C800681598 /* BLAudioSession.m in Sources */,

@@ -7,7 +7,6 @@
 
 #import "AudioOutput.h"
 #import <AudioToolbox/AudioToolbox.h>
-#import <Accelerate/Accelerate.h>
 #import "BLAudioSession.h"
 
 static const AudioUnitElement inputElement = 1;
@@ -206,7 +205,25 @@ static void CheckStatus(OSStatus status,
 }
 
 - (void)makeNodeConnections{
+    OSStatus status = noErr;
+    status = AUGraphConnectNodeInput(_auGraph,
+                                     _convertNode,
+                                     0,
+                                     _ioNode,
+                                     0);
+    CheckStatus(status, @"node connect faile", YES);
     
+    AURenderCallbackStruct callbackStruct;
+    callbackStruct.inputProc = &InputRenderCallback;
+    callbackStruct.inputProcRefCon = (__bridge void *)self;
+    
+    status = AudioUnitSetProperty(_convertUnit,
+                                  kAudioUnitProperty_SetRenderCallback,
+                                  kAudioUnitScope_Input,
+                                  0,
+                                  &callbackStruct,
+                                  sizeof(callbackStruct));
+    CheckStatus(status, @"callback faile", YES);
 }
 
 - (void)addAudioSessionInterruptedObserver{
@@ -234,6 +251,66 @@ static void CheckStatus(OSStatus status,
         default:
             break;
     }
+}
+
+- (void)dealloc{
+    if (_outData) {
+        free(_outData);
+        _outData = NULL;
+    }
+    [self destoryAudioUnitGraph];
+    [self removeAudioSessionInterruptedObserver];
+}
+
+- (void)destoryAudioUnitGraph {
+    AUGraphStop(_auGraph);
+    AUGraphUninitialize(_auGraph);
+    AUGraphClose(_auGraph);
+    AUGraphRemoveNode(_auGraph, _ioNode);
+    DisposeAUGraph(_auGraph);
+    
+    _ioUnit = NULL;
+    _ioNode = 0;
+    _auGraph = NULL;
+}
+
+- (OSStatus)renderData:(AudioBufferList *)ioData
+           atTimeStamp:(const AudioTimeStamp *)timeStamp
+            forElement:(UInt32)element
+          numberFrames:(UInt32)numFrames
+                 flags:(AudioUnitRenderActionFlags *)flags {
+    
+    @autoreleasepool {
+        for (int iBuffer = 0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {
+            memset(ioData->mBuffers[iBuffer].mData, 0, ioData->mBuffers[iBuffer].mDataByteSize);
+        }
+        
+        if (_fillAudioDataDelegate) {
+            [_fillAudioDataDelegate fillAudioData:_outData
+                                        numFrames:numFrames
+                                      numChannels:_channels];
+            
+            for (int iBuffer = 0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {
+                memcpy((SInt16 *)ioData->mBuffers[iBuffer].mData, _outData, ioData->mBuffers[iBuffer].mDataByteSize);
+            }
+        }
+    }
+    return noErr;
+}
+
+
+static OSStatus InputRenderCallback(void *inRefCon,
+                                    AudioUnitRenderActionFlags *ioActionFlags,
+                                    const AudioTimeStamp *inTimeStamp,
+                                    UInt32 inBusNumber,
+                                    UInt32 inNumberFrames,
+                                    AudioBufferList *ioData) {
+    AudioOutput *audioOutput = (__bridge id)inRefCon;
+    return [audioOutput renderData:ioData
+                       atTimeStamp:inTimeStamp
+                        forElement:inBusNumber
+                      numberFrames:inNumberFrames
+                             flags:ioActionFlags];
 }
 
 @end
