@@ -322,7 +322,7 @@ float lastPostion = -1.0;
 }
 
 - (BOOL)usingHWCodec{
-    return self.usingHWCodec;
+    return _usingHWCodec;
 }
 
 - (BOOL)isPlayCompleted{

@@ -13,8 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface PlayerController : NSObject
 
 + (instancetype)viewControllerWithContentPath:(NSString *)path
-usingHWCodec:(BOOL)usingHWCodec
-playerStateDelegate:(id<PlayerStateDelegate>)playerStateDelegate
+                                 usingHWCodec:(BOOL)usingHWCodec
+                          playerStateDelegate:(id<PlayerStateDelegate>)playerStateDelegate
                                    parameters:(NSDictionary *)parameters;
 
 - (NSInteger)getVideoDuration;

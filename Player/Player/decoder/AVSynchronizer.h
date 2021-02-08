@@ -22,6 +22,7 @@ typedef enum : NSInteger {
 @class BuriedPoint, VideoFrame;
 @protocol PlayerStateDelegate <NSObject>
 
+@optional
 - (void)openSucced;
 - (void)connectFailed;
 - (void)hideLoading;

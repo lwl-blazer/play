@@ -6,9 +6,11 @@
 //
 
 #import "ViewController.h"
+#import "PlayerController.h"
 
+@interface ViewController ()<PlayerStateDelegate>
 
-@interface ViewController ()
+@property(nonatomic, strong) PlayerController *playerController;
 
 @end
 
@@ -16,6 +18,21 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.playerController = [PlayerController viewControllerWithContentPath:@""
+                                                               usingHWCodec:NO
+                                                        playerStateDelegate:self
+                                                                 parameters:@{}];
+    [self.playerController setup];
+}
+
+- (IBAction)playerAction:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    
+    if (sender.selected) {
+        [self.playerController play];
+    } else {
+        [self.playerController pause];
+    }
 }
 
 
