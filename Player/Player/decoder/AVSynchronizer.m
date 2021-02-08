@@ -178,6 +178,163 @@ static BOOL isNetworkPath(NSString *path) {
     return OPEN_SUCCESS;
 }
 
+- (void)audioCallbackFillData:(SInt16 *)outData
+                    numFrames:(UInt32)numFrames
+                  numChannels:(UInt32)numChannels{
+    [self checkPlayState];
+    
+    if (self.buffered) {
+        memset(outData, 0, numFrames * numChannels * sizeof(SInt16));
+        return;
+    }
+    
+    @autoreleasepool {
+        while (numFrames > 0) {
+            if (!self.currentAudioFrame) {
+                @synchronized (self.audioFrames) {
+                    NSUInteger count = self.audioFrames.count;
+                    if (count > 0) {
+                        AudioFrame *frame = self.audioFrames[0];
+                        self.bufferedDuration -= frame.duration;
+                        [self.audioFrames removeObjectAtIndex:0];
+                        
+                        self.audioPosition = frame.position;
+                        self.currentAudioFramePos = 0;
+                        self.currentAudioFrame = frame.samples;
+                    }
+                }
+            }
+            
+            if (self.currentAudioFrame) {
+                const void *bytes = (Byte *)self.currentAudioFrame.bytes + self.currentAudioFramePos;
+                
+                const NSUInteger bytesLeft = (self.currentAudioFrame.length - self.currentAudioFramePos);
+                const NSUInteger frameSizeOf = numChannels *sizeof(SInt16);
+                const NSUInteger bytesToCopy = MIN(numFrames * frameSizeOf, bytesLeft);
+                const NSUInteger framesToCopy = bytesToCopy / frameSizeOf;
+                memcpy(outData, bytes, bytesToCopy);
+                
+                numFrames -= framesToCopy;
+                outData += framesToCopy * numChannels;
+                if (bytesToCopy < bytesLeft) {
+                    self.currentAudioFramePos += bytesToCopy;
+                } else {
+                    self.currentAudioFrame = nil;
+                }
+            } else {
+                memset(outData, 0, numFrames * numChannels * sizeof(SInt16));
+                break;
+            }
+        }
+    }
+}
+
+static int count = 0;
+static int invalidGetCount = 0;
+float lastPostion = -1.0;
+- (VideoFrame *)getCorrectVideoFrame{
+    VideoFrame *frame = NULL;
+    @synchronized (self.videoFrames) {
+        
+    }
+    
+    if (frame) {
+        if (self.isFirstScreen) {
+            [self.decoder triggerFirstScreen];
+            self.isFirstScreen = NO;
+        }
+        
+        if (self.currentVideoFrame != NULL) {
+            self.currentVideoFrame = NULL;
+        }
+        self.currentVideoFrame = frame;
+    }
+    
+    if (fabs(self.currentVideoFrame.position - lastPostion) > 0.01f) {
+        lastPostion = self.currentVideoFrame.position;
+        count ++;
+        return self.currentVideoFrame;
+    } else {
+        invalidGetCount ++;
+        return NULL;
+    }
+}
+
+- (void)closeFile{
+    if (self.decoder) {
+        [self.decoder interrupt];
+    }
+    
+    [self destoryDecodeFirstBufferThread];
+    [self destoryDecodeThread];
+    
+    if ([self.decoder isOpenInputSuccess]) {
+        [self closeDecoder];
+    }
+    
+    @synchronized (self.videoFrames) {
+        [self.videoFrames removeAllObjects];
+    }
+    
+    @synchronized (self.audioFrames) {
+        [self.audioFrames removeAllObjects];
+        self.currentAudioFrame = nil;
+    }
+}
+
+- (void)interrupt{
+    if (self.decoder) {
+        [self.decoder interrupt];
+    }
+}
+
+- (NSInteger)getVideoTotalDuration {
+    BuriedPoint *point = [self.decoder getBuriedPoint];
+    return point.second;
+}
+
+- (NSInteger)getVideoFrameWidth{
+    if (self.decoder) {
+        return [self.decoder frameWidth];
+    }
+    return 0;
+}
+
+- (NSInteger)getVideoFrameHeight {
+    if (self.decoder) {
+        return [self.decoder frameHeight];
+    }
+    return 0;
+}
+
+- (NSInteger)getAudioChannels{
+    if (self.decoder) {
+        return [self.decoder channels];
+    }
+    return -1;
+}
+
+- (NSInteger)getAudioSampleRate{
+    if (self.decoder) {
+        return [self.decoder sampleRate];
+    }
+    return -1;
+}
+
+- (BOOL)usingHWCodec{
+    return self.usingHWCodec;
+}
+
+- (BOOL)isPlayCompleted{
+    return self.completion;
+}
+
+- (BOOL)isOpenInputSuccess{
+    if (self.decoder) {
+        return [self.decoder isOpenInputSuccess];
+    }
+    return NO;
+}
 
 #pragma mark -- private method
 - (void)createDecoderInstance {
@@ -236,11 +393,200 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
 }
 
 - (void)run {
-    
+    while (self.isOnDecoding) {
+        pthread_mutex_lock(&videoDecoderLock);
+        pthread_cond_wait(&videoDecoderCondition, &videoDecoderLock);
+        pthread_mutex_unlock(&videoDecoderLock);
+        
+        [self decodeFrames];
+    }
+}
+
+- (void)decodeFrames {
+    const CGFloat duration = 0.0;
+    BOOL good = YES;
+    while (good) {
+        good = NO;
+        @autoreleasepool {
+            if (self.decoder && (self.decoder.validAudio || self.decoder.validVideo)) {
+                NSArray *frames = [self.decoder decodeFrames:duration
+                                       decodeVideoErrorState:&_decodeVideoErrorState];
+                if (frames.count) {
+                    good = [self addFrames:frames
+                                  duration:self.maxBufferedDuration];
+                }
+            }
+        }
+    }
 }
 
 - (void)decodeFirstBuffer {
+    double startDecodeFirstBufferTimeMills = CFAbsoluteTimeGetCurrent() * 1000;
+    [self decoderFrameWithDuration:FIRST_BUFFER_DURATION];
+    int wasteTimeMills = CFAbsoluteTimeGetCurrent() * 1000 - startDecodeFirstBufferTimeMills;
+    NSLog(@"Decode First Buffer waste TimeMills is %d", wasteTimeMills);
     
+    pthread_mutex_lock(&decoderFirstBufferLock);
+    pthread_cond_signal(&decoderFirstBufferCondition);
+    pthread_mutex_unlock(&decoderFirstBufferLock);
+    
+    self.isDecodingFirstBuffer = false;
+}
+
+- (void)decoderFrameWithDuration:(CGFloat)duration{
+    BOOL good = YES;
+    while (good) {
+        good = NO;
+        @autoreleasepool {
+            if (self.decoder && (self.decoder.validVideo || self.decoder.validAudio)) {
+                int tmpDecodeVideoErrorState;
+                NSArray *frames = [self.decoder decodeFrames:0.0f decodeVideoErrorState:&tmpDecodeVideoErrorState];
+                if (frames.count) {
+                    good = [self addFrames:frames duration:duration];
+                }
+            }
+        }
+    }
+}
+
+- (BOOL)addFrames:(NSArray *)frames
+         duration:(CGFloat)duration {
+    if (self.decoder.validVideo) {
+        @synchronized (self.videoFrames) {
+            for (Frame *frame in frames) {
+                if (frame.type == VideoFrameType || frame.type == iOSCVVideoFrameType) {
+                    [self.videoFrames addObject:frame];
+                }
+            }
+        }
+    }
+    
+    if (self.decoder.validAudio) {
+        @synchronized (self.audioFrames) {
+            for (Frame *frame in frames) {
+                if (frame.type == AudioFrameType) {
+                    [self.audioFrames addObject:frame];
+                    self.bufferedDuration += frame.duration;
+                }
+            }
+        }
+    }
+    
+    return self.bufferedDuration < duration;
+}
+
+- (void)checkPlayState {
+    if (self.decoder == NULL) {
+        return;
+    }
+    
+    if (1 == self.decodeVideoErrorState) {
+        self.decodeVideoErrorState = 0;
+        if (self.minBufferedDuration > 0 && !self.buffered) {
+            self.buffered = YES;
+            self.decodeVideoErrorBeginTime = [[NSDate date] timeIntervalSince1970];
+        }
+        
+        self.decodeVideoErrorTotalTime = [[NSDate date] timeIntervalSince1970] - self.decodeVideoErrorBeginTime;
+        if (self.decodeVideoErrorTotalTime > TIMEOUT_DECODE_ERROR) {
+            self.decodeVideoErrorTotalTime = 0.0;
+            __weak typeof(self) weakSelf = self;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong typeof(weakSelf) strongify = weakSelf;
+                if (strongify.playerStateDelegate && [strongify.playerStateDelegate respondsToSelector:@selector(restart)]) {
+                    [strongify.playerStateDelegate restart];
+                }
+            });
+        }
+        return;
+    }
+    
+    const NSUInteger leftVideoFrames = self.decoder.validVideo ? self.videoFrames.count : 0;
+    const NSUInteger leftAudioFrames = self.decoder.validAudio ? self.audioFrames.count : 0;
+    
+    if (leftVideoFrames == 0 || leftAudioFrames == 0) {
+        [self.decoder addBufferStatusRecord:@"E"];
+        if (self.minBufferedDuration > 0 && !self.buffered) {
+            self.buffered = YES;
+            self.bufferedBeginTime = [[NSDate date] timeIntervalSince1970];
+            if (self.playerStateDelegate && [self.playerStateDelegate respondsToSelector:@selector(showLoading)]) {
+                [self.playerStateDelegate showLoading];
+            }
+        }
+        
+        if ([self.decoder isEOF]) {
+            if (self.playerStateDelegate && [self.playerStateDelegate respondsToSelector:@selector(onCompletion)]) {
+                self.completion = YES;
+                [self.playerStateDelegate onCompletion];
+            }
+        }
+    }
+    
+    if (self.buffered) {
+        self.bufferedTotalTime = [[NSDate date] timeIntervalSince1970] - self.bufferedBeginTime;
+        if (self.bufferedTotalTime > TIMEOUT_BUFFER) {
+            self.bufferedTotalTime = 0;
+            __weak typeof(self) weakSelf = self;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong typeof(weakSelf) strongify = weakSelf;
+                if (strongify.playerStateDelegate && [strongify.playerStateDelegate respondsToSelector:@selector(restart)]) {
+                    [strongify.playerStateDelegate restart];
+                }
+            });
+            return;
+        }
+    }
+    
+    if (!self.isDecodingFirstBuffer && (0 == leftVideoFrames || 0 == leftAudioFrames || !(self.bufferedDuration > self.minBufferedDuration))) {
+        [self signalDecoderThread];
+    } else if (self.bufferedDuration >= self.maxBufferedDuration) {
+        [self.decoder addBufferStatusRecord:@"F"];
+    }
+}
+
+- (void)signalDecoderThread {
+    if (self.decoder == NULL || self.isDestroyed) {
+        return;
+    }
+    
+    if (!self.isDestroyed) {
+        pthread_mutex_lock(&videoDecoderLock);
+        pthread_cond_signal(&videoDecoderCondition);
+        pthread_mutex_unlock(&videoDecoderLock);
+    }
+}
+
+- (void)destoryDecodeFirstBufferThread {
+    if (self.isDecodingFirstBuffer) {
+        double startWaitDecodeFirstBufferTimeMills = CFAbsoluteTimeGetCurrent() * 1000;
+        pthread_mutex_lock(&decoderFirstBufferLock);
+        pthread_cond_wait(&decoderFirstBufferCondition, &decoderFirstBufferLock);
+        pthread_mutex_unlock(&decoderFirstBufferLock);
+        
+        pthread_cond_destroy(&decoderFirstBufferCondition);
+        pthread_mutex_destroy(&decoderFirstBufferLock);
+        
+        int wasteTimeMills = CFAbsoluteTimeGetCurrent() * 1000 - startWaitDecodeFirstBufferTimeMills;
+        NSLog(@" Wait Decode First Buffer waste TimeMills is %d", wasteTimeMills);
+    }
+}
+
+- (void)destoryDecodeThread {
+    self.isDestroyed = YES;
+    self.isOnDecoding = NO;
+    if (!self.isInitializeDecodeThread) {
+        return;
+    }
+    
+    void *status;
+    pthread_mutex_lock(&videoDecoderLock);
+    pthread_cond_signal(&videoDecoderCondition);
+    pthread_mutex_unlock(&videoDecoderLock);
+    
+    pthread_join(videoDecoderThread, &status);
+    pthread_mutex_destroy(&videoDecoderLock);
+    pthread_cond_destroy(&videoDecoderCondition);
+
 }
 
 @end
