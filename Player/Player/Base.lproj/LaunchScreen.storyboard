@@ -17,12 +17,13 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="copy right -- blazer-luo" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e3y-kT-j41">
-                                <rect key="frame" x="119" y="814" width="177" height="48"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hello,Player" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dMU-I1-fkc">
+                                <rect key="frame" x="118" y="424.5" width="178" height="47"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="48" id="JPB-1L-38k"/>
+                                    <constraint firstAttribute="width" constant="178" id="V93-65-aqR"/>
+                                    <constraint firstAttribute="height" constant="47" id="rAU-51-3t7"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle0"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -30,9 +31,8 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="e3y-kT-j41" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="Iaa-wk-lEF"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="e3y-kT-j41" secondAttribute="trailing" constant="118" id="Ktb-dZ-wB9"/>
-                            <constraint firstItem="e3y-kT-j41" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="119" id="XYW-Pn-aBV"/>
+                            <constraint firstItem="dMU-I1-fkc" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="058-Hz-vWy"/>
+                            <constraint firstItem="dMU-I1-fkc" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="Btq-JQ-ThR"/>
                         </constraints>
                     </view>
                 </viewController>

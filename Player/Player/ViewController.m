@@ -8,6 +8,9 @@
 #import "ViewController.h"
 #import "PlayerController.h"
 
+NSString *const MIN_BUFFERED_DURATION = @"Min Buffered Duration";
+NSString *const MAX_BUFFERED_DURATION = @"Max Buffered Duration";
+
 @interface ViewController ()<PlayerStateDelegate>
 
 @property(nonatomic, strong) PlayerController *playerController;
@@ -18,16 +21,18 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.playerController = [PlayerController viewControllerWithContentPath:@""
+    NSString *pathString = [[NSBundle mainBundle] pathForResource:@"music2" ofType:@"flv"];
+    NSLog(@"%@", pathString);
+    self.playerController = [PlayerController viewControllerWithContentPath:pathString
                                                                usingHWCodec:NO
                                                         playerStateDelegate:self
-                                                                 parameters:@{}];
+                                                                 parameters:[NSDictionary dictionaryWithObjectsAndKeys:@(2.0), MIN_BUFFERED_DURATION,
+                                                                             @(4.0), MAX_BUFFERED_DURATION, nil]];
     [self.playerController setup];
 }
 
 - (IBAction)playerAction:(UIButton *)sender {
     sender.selected = !sender.selected;
-    
     if (sender.selected) {
         [self.playerController play];
     } else {

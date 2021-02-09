@@ -235,7 +235,23 @@ float lastPostion = -1.0;
 - (VideoFrame *)getCorrectVideoFrame{
     VideoFrame *frame = NULL;
     @synchronized (self.videoFrames) {
-        
+        while (self.videoFrames.count > 0) {
+            frame = self.videoFrames[0];
+            const CGFloat delta = self.audioPosition - frame.position;
+            if (delta < (0 - self.syncMaxTimeDiff)) {
+                frame = NULL;
+                break;
+            }
+            
+            [self.videoFrames removeObjectAtIndex:0];
+            
+            if (delta > self.syncMaxTimeDiff) {
+                frame = NULL;
+                continue;
+            } else {
+                break;
+            }
+        }
     }
     
     if (frame) {
@@ -397,7 +413,6 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
         pthread_mutex_lock(&videoDecoderLock);
         pthread_cond_wait(&videoDecoderCondition, &videoDecoderLock);
         pthread_mutex_unlock(&videoDecoderLock);
-        
         [self decodeFrames];
     }
 }

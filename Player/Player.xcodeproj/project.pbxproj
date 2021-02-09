@@ -40,6 +40,7 @@
 		2500A1F425CD465E00681598 /* libfdk-aac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2500A1F325CD465E00681598 /* libfdk-aac.a */; };
 		2500A1FB25CD487100681598 /* PlayerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A1FA25CD487100681598 /* PlayerController.m */; };
 		2500A20425CD4A7600681598 /* AVSynchronizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 2500A20325CD4A7600681598 /* AVSynchronizer.m */; };
+		2500A20A25D12C4F00681598 /* music2.flv in Resources */ = {isa = PBXBuildFile; fileRef = 2500A20925D12C4F00681598 /* music2.flv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +109,7 @@
 		2500A1FA25CD487100681598 /* PlayerController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PlayerController.m; sourceTree = "<group>"; };
 		2500A20225CD4A7600681598 /* AVSynchronizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVSynchronizer.h; sourceTree = "<group>"; };
 		2500A20325CD4A7600681598 /* AVSynchronizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVSynchronizer.m; sourceTree = "<group>"; };
+		2500A20925D12C4F00681598 /* music2.flv */ = {isa = PBXFileReference; lastKnownFileType = file; path = music2.flv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,6 +178,7 @@
 		2500A0A625A2F3D500681598 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				2500A20825D12B9D00681598 /* resource */,
 				2500A1F825CD485700681598 /* controller */,
 				2500A16525AD375D00681598 /* audioOutput */,
 				2500A13D25A5615600681598 /* decoder */,
@@ -268,6 +271,14 @@
 				2500A1FA25CD487100681598 /* PlayerController.m */,
 			);
 			path = controller;
+			sourceTree = "<group>";
+		};
+		2500A20825D12B9D00681598 /* resource */ = {
+			isa = PBXGroup;
+			children = (
+				2500A20925D12C4F00681598 /* music2.flv */,
+			);
+			path = resource;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -375,6 +386,7 @@
 				2500A0B725A2F3D600681598 /* LaunchScreen.storyboard in Resources */,
 				2500A16125A83B0300681598 /* 学习知识 in Resources */,
 				2500A0B425A2F3D600681598 /* Assets.xcassets in Resources */,
+				2500A20A25D12C4F00681598 /* music2.flv in Resources */,
 				2500A0B225A2F3D500681598 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

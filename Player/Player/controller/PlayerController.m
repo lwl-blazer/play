@@ -142,6 +142,8 @@
         [self.synchronizer audioCallbackFillData:sampleBuffer
                                        numFrames:(UInt32)frameNum
                                      numChannels:(UInt32)channels];
+        
+       [self.synchronizer getCorrectVideoFrame];
     } else {
         memset(sampleBuffer, 0, frameNum * channels * sizeof(SInt16));
     }
