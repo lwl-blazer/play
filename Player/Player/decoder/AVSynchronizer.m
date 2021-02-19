@@ -181,6 +181,7 @@ static BOOL isNetworkPath(NSString *path) {
 - (void)audioCallbackFillData:(SInt16 *)outData
                     numFrames:(UInt32)numFrames
                   numChannels:(UInt32)numChannels{
+    //是否需要解码， 失败，完成的状态处理
     [self checkPlayState];
     
     if (self.buffered) {
@@ -188,6 +189,7 @@ static BOOL isNetworkPath(NSString *path) {
         return;
     }
     
+    // 填充数据
     @autoreleasepool {
         while (numFrames > 0) {
             if (!self.currentAudioFrame) {
@@ -229,6 +231,7 @@ static BOOL isNetworkPath(NSString *path) {
     }
 }
 
+// 音视频同步
 static int count = 0;
 static int invalidGetCount = 0;
 float lastPostion = -1.0;
@@ -495,7 +498,7 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
         return;
     }
     
-    if (1 == self.decodeVideoErrorState) {
+    if (1 == self.decodeVideoErrorState) { // 解码失败
         self.decodeVideoErrorState = 0;
         if (self.minBufferedDuration > 0 && !self.buffered) {
             self.buffered = YES;
@@ -519,9 +522,9 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
     const NSUInteger leftVideoFrames = self.decoder.validVideo ? self.videoFrames.count : 0;
     const NSUInteger leftAudioFrames = self.decoder.validAudio ? self.audioFrames.count : 0;
     
-    if (leftVideoFrames == 0 || leftAudioFrames == 0) {
+    if (leftVideoFrames == 0 || leftAudioFrames == 0) { //没有视频和音频帧
         [self.decoder addBufferStatusRecord:@"E"];
-        if (self.minBufferedDuration > 0 && !self.buffered) {
+        if (self.minBufferedDuration > 0 && !self.buffered) { // 加载中...
             self.buffered = YES;
             self.bufferedBeginTime = [[NSDate date] timeIntervalSince1970];
             if (self.playerStateDelegate && [self.playerStateDelegate respondsToSelector:@selector(showLoading)]) {
@@ -529,7 +532,7 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
             }
         }
         
-        if ([self.decoder isEOF]) {
+        if ([self.decoder isEOF]) { //已经解码完
             if (self.playerStateDelegate && [self.playerStateDelegate respondsToSelector:@selector(onCompletion)]) {
                 self.completion = YES;
                 [self.playerStateDelegate onCompletion];
@@ -537,9 +540,9 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
         }
     }
     
-    if (self.buffered) {
+    if (self.buffered) { // 没有数据
         self.bufferedTotalTime = [[NSDate date] timeIntervalSince1970] - self.bufferedBeginTime;
-        if (self.bufferedTotalTime > TIMEOUT_BUFFER) {
+        if (self.bufferedTotalTime > TIMEOUT_BUFFER) { // 超时
             self.bufferedTotalTime = 0;
             __weak typeof(self) weakSelf = self;
             dispatch_async(dispatch_get_main_queue(), ^{
