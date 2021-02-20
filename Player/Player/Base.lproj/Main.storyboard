@@ -26,6 +26,14 @@
                                     <action selector="playerAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="fvK-d9-Rxb"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3nm-IU-Wu9">
+                                <rect key="frame" x="425" y="123" width="46" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="restart"/>
+                                <connections>
+                                    <action selector="restart:" destination="BYZ-38-t0r" eventType="touchUpInside" id="tb5-NL-k12"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>

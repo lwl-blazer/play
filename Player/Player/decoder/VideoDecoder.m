@@ -278,7 +278,7 @@ static NSData *copyFrameData(UInt8 *src,
                     AudioFrame *frame = [self handleAudioFrame];
                     if (frame) {
                         [result addObject:frame];
-                        if (_videoStreamIndex == -1) {
+                        if (_videoStreamIndex == -1) { // 当前文件只有音频没有视频， 否则以视频处理是否完成
                             _decodePosition = frame.position;
                             decodeDuration += frame.duration;
                             if (decodeDuration > minDuration) {

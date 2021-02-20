@@ -191,8 +191,9 @@ static BOOL isNetworkPath(NSString *path) {
     
     // 填充数据
     @autoreleasepool {
+        // numFrames 总共需要多少帧
         while (numFrames > 0) {
-            if (!self.currentAudioFrame) {
+            if (!self.currentAudioFrame) { // 音频数据为空 从队列中取音频数据
                 @synchronized (self.audioFrames) {
                     NSUInteger count = self.audioFrames.count;
                     if (count > 0) {
@@ -207,23 +208,42 @@ static BOOL isNetworkPath(NSString *path) {
                 }
             }
             
-            if (self.currentAudioFrame) {
+            if (self.currentAudioFrame) { // 填充音频数据
                 const void *bytes = (Byte *)self.currentAudioFrame.bytes + self.currentAudioFramePos;
                 
+                //当前音频帧剩下多少长数据
                 const NSUInteger bytesLeft = (self.currentAudioFrame.length - self.currentAudioFramePos);
+                
+                //每帧数据的大小
                 const NSUInteger frameSizeOf = numChannels *sizeof(SInt16);
+                
+                // 最小拷贝的数据长度(numFrames * frameSizeOf 最小需要的数据量)
                 const NSUInteger bytesToCopy = MIN(numFrames * frameSizeOf, bytesLeft);
+                
+                // 拷贝的帧数
                 const NSUInteger framesToCopy = bytesToCopy / frameSizeOf;
+                
+                //拷贝数据
                 memcpy(outData, bytes, bytesToCopy);
                 
+                // 减掉已经拷贝的帧数
                 numFrames -= framesToCopy;
+                
+                /**注意点:
+                 * 拷贝数据的长度是bytesToCopy 但是outData移位的长度是 framesToCopy * numChannels，因为outdata是SInt16(2个字节) 而bytes是Byte(SInt8 1个字节)类型
+                 */
+                //注意点，
                 outData += framesToCopy * numChannels;
+//                outData += bytesToCopy / sizeof(SInt16);
+                
+                //如果数据还没有拷贝完，移位
                 if (bytesToCopy < bytesLeft) {
                     self.currentAudioFramePos += bytesToCopy;
-                } else {
+                } else { // 已经拷贝完，赋nil
                     self.currentAudioFrame = nil;
                 }
             } else {
+                // 填充静音数据
                 memset(outData, 0, numFrames * numChannels * sizeof(SInt16));
                 break;
             }
@@ -240,29 +260,30 @@ float lastPostion = -1.0;
     @synchronized (self.videoFrames) {
         while (self.videoFrames.count > 0) {
             frame = self.videoFrames[0];
+            //音频position 和 视频的position 的差值 是否在syncMaxTimeDiff的范围内
             const CGFloat delta = self.audioPosition - frame.position;
-            if (delta < (0 - self.syncMaxTimeDiff)) {
+            if (delta < (0 - self.syncMaxTimeDiff)) { // 如果frame.position 大于 audioPosition 那delta 为负数 且小于-self.syncMaxTimeDiff
                 frame = NULL;
-                break;
+                break; // 说明视频帧太快，界面显示原有视频帧，不能删除队列中的视频帧 所以需要break
             }
             
-            [self.videoFrames removeObjectAtIndex:0];
-            
-            if (delta > self.syncMaxTimeDiff) {
+            [self.videoFrames removeObjectAtIndex:0]; // 清除
+            if (delta > self.syncMaxTimeDiff) { //视频太慢
                 frame = NULL;
                 continue;
-            } else {
+            } else { // 刚刚好
                 break;
             }
         }
     }
     
     if (frame) {
-        if (self.isFirstScreen) {
-            [self.decoder triggerFirstScreen];
+        if (self.isFirstScreen) { // 首屏
+            [self.decoder triggerFirstScreen]; // 首屏完成时间
             self.isFirstScreen = NO;
         }
         
+        // 赋值
         if (self.currentVideoFrame != NULL) {
             self.currentVideoFrame = NULL;
         }
@@ -394,6 +415,7 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
     pthread_cond_init(&videoDecoderCondition, NULL);
     self.isInitializeDecodeThread = YES;
     
+    //线程
     pthread_create(&videoDecoderThread,
                    NULL,
                    runDecoderThread,
@@ -412,6 +434,7 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
 }
 
 - (void)run {
+    // 只要isOnDecoding不为false 就会一直运行
     while (self.isOnDecoding) {
         pthread_mutex_lock(&videoDecoderLock);
         pthread_cond_wait(&videoDecoderCondition, &videoDecoderLock);
@@ -428,7 +451,7 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
         @autoreleasepool {
             if (self.decoder && (self.decoder.validAudio || self.decoder.validVideo)) {
                 NSArray *frames = [self.decoder decodeFrames:duration
-                                       decodeVideoErrorState:&_decodeVideoErrorState];
+                                       decodeVideoErrorState:&_decodeVideoErrorState]; // 每次只解一帧数据，因为duration为0.0 为什么用NSArray因为音频有可能有多个音频帧
                 if (frames.count) {
                     good = [self addFrames:frames
                                   duration:self.maxBufferedDuration];
@@ -589,7 +612,14 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
     }
 }
 
+// 销毁解码线程
 - (void)destoryDecodeThread {
+    /**
+     * 销毁解码线程的注意事项:
+     * 1. 先将isOnDecoding设置为NO，就不循环了
+     * 2. 还需要额外发送一次signal指令，让解码线程有机会结束，如果不发送signal指令，那么解码线程就有可能一直wait在这里，成为一个僵尸线程
+     *
+     */
     self.isDestroyed = YES;
     self.isOnDecoding = NO;
     if (!self.isInitializeDecodeThread) {
@@ -601,10 +631,10 @@ static void *decoderFirstBufferRunLoop(void *ptr) {
     pthread_cond_signal(&videoDecoderCondition);
     pthread_mutex_unlock(&videoDecoderLock);
     
+    // pthread_join(pthread_t thread, void *retval)  以阻塞的方式等待thread指定线程的结束
     pthread_join(videoDecoderThread, &status);
     pthread_mutex_destroy(&videoDecoderLock);
     pthread_cond_destroy(&videoDecoderCondition);
-
 }
 
 @end

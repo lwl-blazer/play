@@ -40,5 +40,8 @@ NSString *const MAX_BUFFERED_DURATION = @"Max Buffered Duration";
     }
 }
 
+- (IBAction)restart:(id)sender {
+    [self.playerController restart];
+}
 
 @end
