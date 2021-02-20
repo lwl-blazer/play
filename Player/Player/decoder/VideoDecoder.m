@@ -99,6 +99,7 @@ static int interrupt_callback(void *ctx) {
     return r;
 }
 
+// 收集AVFormatContext对应的AVMediaType对应的stream下标
 static NSArray *collectStreams(AVFormatContext *formatCtx,
                                enum AVMediaType codecType) {
     NSMutableArray *ma = [NSMutableArray array];
@@ -124,12 +125,12 @@ static void avStreamFPSTimeBase(AVStream *st,
         timebase = defaultTimeBase;   //默认
     }
     
-    //
+    //ticks_per_frame  有一些编解码器时基更接近于场速率而不是帧速率   H.264是1  MPEG-2是2
     if (codecContext->ticks_per_frame != 1) {
         NSLog(@"WARNING: st.codec.ticks_per_frame=%d", codecContext->ticks_per_frame);
     }
 
-    if (pFPS != NULL) {
+    if (pFPS != NULL) { //帧率
         CGFloat fps;
         if (st->avg_frame_rate.den && st->avg_frame_rate.num) {
             fps = av_q2d(st->avg_frame_rate);
@@ -182,10 +183,14 @@ static NSData *copyFrameData(UInt8 *src,
     _buriedPoint.bufferStatusRecords = [[NSMutableArray alloc] init];
     _readLastestFrameTime = [[NSDate date] timeIntervalSince1970];
     
+    //1.建立连接
     avformat_network_init();
+    
     _buriedPoint.beginOpen = [[NSDate date] timeIntervalSince1970] * 1000;
     
+    //2.解封装
     int openInputErrCode = [self openInput:path parameter:parameters];
+    
     if (openInputErrCode > 0) {
         _buriedPoint.successOpen = ([[NSDate date] timeIntervalSince1970] * 1000 - _buriedPoint.beginOpen)/1000.0;
         _buriedPoint.failOpen = 0.0f;
@@ -195,7 +200,7 @@ static NSData *copyFrameData(UInt8 *src,
             int64_t duration = _formatContext->duration + 5000;
             _buriedPoint.second = (int)duration / AV_TIME_BASE;
         }
-        //打开每个流的解码器
+        //3.打开每个流的解码器
         BOOL openVideoStatus = [self openVideoStream];
         BOOL openAudioStatus = [self openAudioStream];
         if (!openVideoStatus || !openAudioStatus) {
@@ -235,15 +240,19 @@ static NSData *copyFrameData(UInt8 *src,
 
 - (NSArray *)decodeFrames:(CGFloat)minDuration
     decodeVideoErrorState:(int *)decodeVideoErrorState{
+    //编解码器失败
     if (_videoStreamIndex == -1 && _audioStreamIndex == -1) {
         return NULL;
     }
     
     NSMutableArray *result = [NSMutableArray array];
+    
+    //AVPacket 压缩数据的抽象
     AVPacket packet;
     CGFloat decodeDuration = 0;
     BOOL finished = NO;
     while (!finished) {
+        // av_read_frame() 读取码流中的音频若干帧或者视频一帧
         if (av_read_frame(_formatContext, &packet) < 0) {
             _isEOF = YES;
             break;
@@ -383,15 +392,19 @@ static NSData *copyFrameData(UInt8 *src,
 }
 
 #pragma mark -- private method
+// 解封装
 - (int)openInput:(NSString *)path
        parameter:(NSDictionary *)parameters{
     
+    //AVFormatContext 是对容器或者说媒体文件层次的一个抽象
     AVFormatContext *formatContext = avformat_alloc_context();
     
+    //avformat_open_input() 失败,中断回调函数
     AVIOInterruptCB int_cb = {interrupt_callback, (__bridge void *)(self)};
     formatContext->interrupt_callback = int_cb;
     
     int openInputErrCode = 0;
+    //打开输入文件 avformat_open_input()
     openInputErrCode = [self openFormatInput:&formatContext
                                         path:path
                                    parameter:parameters];
@@ -403,10 +416,12 @@ static NSData *copyFrameData(UInt8 *src,
         return openInputErrCode;
     }
     
+    //设置探测数据信息
     [self initAnalyzeDurationAndProbesize:formatContext
                                 parameter:parameters];
     int findStreamErrCode = 0;
     double startFindStreamTimeMills = CFAbsoluteTimeGetCurrent() * 1000;
+    //探测数据
     findStreamErrCode = avformat_find_stream_info(formatContext, NULL);
     if (findStreamErrCode < 0) {
         avformat_close_input(&formatContext);
@@ -422,6 +437,7 @@ static NSData *copyFrameData(UInt8 *src,
         avformat_free_context(formatContext);
         NSLog(@"Video decoder First Stream Codec ID is UnKnown...");
         if ([self isNeedRetry]) {
+            // 递归调用
             return [self openInput:path parameter:parameters];
         } else {
             return -1;
@@ -452,6 +468,7 @@ static NSData *copyFrameData(UInt8 *src,
                     rtmp_tcurl,
                     0);
     }
+    // avformat_open_input是FFmpeg中比较重要的函数，功能有打开文件，解协议，解析文件头部数据
     return avformat_open_input(formatContext,
                                videoSourceURL,
                                NULL,
@@ -488,14 +505,17 @@ static NSData *copyFrameData(UInt8 *src,
     return _connectionRetry <= NET_WORK_STREAM_RETRY_TIME;
 }
 
-- (BOOL)openVideoStream{
+- (BOOL)openVideoStream {
     _videoStreamIndex = -1;
-    _videoStreams = collectStreams(_formatContext, AVMEDIA_TYPE_VIDEO);
-    // 找到1个AVStream就退出循环
+    _videoStreams = collectStreams(_formatContext, AVMEDIA_TYPE_VIDEO); // 收集stream的下标
+    // 拿出1个AVStream, 创建解码器成功就退出循环
     for (NSNumber *n in _videoStreams) {
         const NSUInteger iStream = n.integerValue;
+        // AVCodecContext 编解码格式的抽象
         AVCodecContext *codecCtx = avcodec_alloc_context3(NULL);
         avcodec_parameters_to_context(codecCtx, _formatContext->streams[iStream]->codecpar);
+        
+        // AVCodec 编解码器的抽象
         AVCodec *codec = avcodec_find_decoder(codecCtx->codec_id);
         if (!codec) {
             NSLog(@"Find Video Decoder Failed codec_id %d CODEC_ID_H264 is %d", codecCtx->codec_id, AV_CODEC_ID_H264);
@@ -503,6 +523,7 @@ static NSData *copyFrameData(UInt8 *src,
         }
         
         int openCodecErrCode = 0;
+        // avcodec_open2() 用于初始化一个AVCodec的AVCodecContext
         openCodecErrCode = avcodec_open2(codecCtx, codec, NULL);
         if (openCodecErrCode < 0) {
             NSLog(@"open video codec failed openCodecErr is %s", av_err2str(openCodecErrCode));
@@ -510,6 +531,7 @@ static NSData *copyFrameData(UInt8 *src,
             return NO;
         }
         
+        // AVFrame 原始数据的抽象
         _videoFrame = av_frame_alloc();
         if (!_videoFrame) {
             NSLog(@"Alloc video frame failed...");
@@ -520,6 +542,7 @@ static NSData *copyFrameData(UInt8 *src,
         _videoStreamIndex = iStream;
         _videoCodecCtx = codecCtx;
         
+        //AVStream 流的抽象
         AVStream *st = _formatContext->streams[_videoStreamIndex];
         //计算 AVStream的timeBase(秒)和fps
         avStreamFPSTimeBase(st,
@@ -657,6 +680,7 @@ static NSData *copyFrameData(UInt8 *src,
                  packetSize:(int)pktSize
       decodeVideoErrorState:(int *)decodeVideoErrorState {
     VideoFrame *frame = nil;
+    //avcodec_send_packet() 发送数据到FFmpeg,放到解码队列中
     int len = avcodec_send_packet(_videoCodecCtx,
                                   &packet);
     if (len < 0) {
@@ -665,6 +689,7 @@ static NSData *copyFrameData(UInt8 *src,
         return frame;
     }
     
+    // avcodec_receive_frame() 将成功的解码队列中取出1个frame
     while (avcodec_receive_frame(_videoCodecCtx, _videoFrame) >= 0) {
         frame = [self handleVideoFrame];
     }
